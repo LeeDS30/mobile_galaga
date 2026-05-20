@@ -341,7 +341,7 @@
     .info-grid {
       margin-top: 13px;
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       gap: 9px;
     }
 
@@ -495,7 +495,7 @@
         </div>
         <div class="hud-card">
           <div class="hud-label">LIVES</div>
-          <div id="lives" class="hud-value">3</div>
+          <div id="lives" class="hud-value">5</div>
         </div>
         <div class="hud-card">
           <div class="hud-label">WAVE</div>
@@ -543,6 +543,7 @@
       <div class="info-card"><strong>M · 공격 수량</strong>3발 동시 발사</div>
       <div class="info-card"><strong>P · 관통탄</strong>탄환이 적을 관통</div>
       <div class="info-card"><strong>S · 보호막</strong>피격 방어 후 짧은 무적</div>
+      <div class="info-card"><strong>L · 생명 추가</strong>목숨 1개 회복</div>
       <div class="info-card"><strong>B · 폭탄</strong>일반 적 제거 / 보스 큰 피해</div>
     </section>
 
@@ -575,6 +576,7 @@
     const WIDTH = 800;
     const HEIGHT = 600;
     const BOSS_INTERVAL = 5;
+    const INITIAL_LIVES = 5;
 
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
@@ -615,6 +617,7 @@
       MULTI: { key: "multi", label: "MULTI", shortName: "다중", duration: 10, color: "#60a5fa", textColor: "#0f172a", icon: "M" },
       PIERCE: { key: "pierce", label: "PIERCE", shortName: "관통", duration: 8, color: "#a78bfa", textColor: "#111827", icon: "P" },
       SHIELD: { key: "shield", label: "SHIELD", shortName: "방어", duration: 7, color: "#34d399", textColor: "#052e16", icon: "S" },
+      LIFE: { key: "life", label: "LIFE", shortName: "생명", duration: 0, color: "#f9a8d4", textColor: "#500724", icon: "L" },
       BOMB: { key: "bomb", label: "BOMB", shortName: "폭탄", duration: 0, color: "#fb7185", textColor: "#450a0a", icon: "B" },
     };
 
@@ -725,7 +728,7 @@
         })),
         particles: [],
         score: game ? game.score : 0,
-        lives: game ? game.lives : 3,
+        lives: wave === 1 ? INITIAL_LIVES : (game ? game.lives : INITIAL_LIVES),
         wave,
         state: "playing",
         isBossWave,
@@ -899,10 +902,11 @@
 
     function choosePowerUpType() {
       const roll = Math.random();
-      if (roll < 0.30) return POWER_UP_TYPES.RAPID;
-      if (roll < 0.55) return POWER_UP_TYPES.MULTI;
-      if (roll < 0.73) return POWER_UP_TYPES.PIERCE;
-      if (roll < 0.91) return POWER_UP_TYPES.SHIELD;
+      if (roll < 0.27) return POWER_UP_TYPES.RAPID;
+      if (roll < 0.50) return POWER_UP_TYPES.MULTI;
+      if (roll < 0.68) return POWER_UP_TYPES.PIERCE;
+      if (roll < 0.84) return POWER_UP_TYPES.SHIELD;
+      if (roll < 0.96) return POWER_UP_TYPES.LIFE;
       return POWER_UP_TYPES.BOMB;
     }
 
@@ -966,6 +970,12 @@
       if (type.key === POWER_UP_TYPES.SHIELD.key) {
         player.shieldTimer = Math.max(player.shieldTimer, 0) + type.duration;
         addFloatingText("+보호막", player.x, player.y - 40, type.color);
+      }
+      if (type.key === POWER_UP_TYPES.LIFE.key) {
+        const beforeLives = game.lives;
+        game.lives = Math.min(9, game.lives + 1);
+        const gained = game.lives > beforeLives;
+        addFloatingText(gained ? "+1 LIFE" : "LIFE MAX", player.x, player.y - 40, type.color);
       }
       if (type.key === POWER_UP_TYPES.BOMB.key) applyBomb();
 
